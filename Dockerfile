@@ -1,5 +1,3 @@
-# syntax=docker/dockerfile:1
-
 ARG GO_VERSION=1.23
 ARG ALPINE_VERSION=3.21
 ARG XX_VERSION=1.6.1
@@ -7,10 +5,12 @@ ARG XX_VERSION=1.6.1
 ARG QEMU_VERSION=HEAD
 ARG QEMU_REPO=https://github.com/qemu/qemu
 
-# xx is a helper for cross-compilation
-FROM --platform=$BUILDPLATFORM tonistiigi/xx:${XX_VERSION} AS xx
+ARG BUILDPLATFORM=linux/loong64
 
-FROM --platform=$BUILDPLATFORM alpine:${ALPINE_VERSION} AS src
+# xx is a helper for cross-compilation
+FROM --platform=$BUILDPLATFORM ghcr.io/loong64/xx:${XX_VERSION} AS xx
+
+FROM --platform=$BUILDPLATFORM ghcr.io/loong64/alpine:${ALPINE_VERSION} AS src
 RUN apk add --no-cache git patch meson
 
 WORKDIR /src
@@ -61,7 +61,7 @@ RUN <<eof
   meson subprojects download keycodemapdb berkeley-testfloat-3 berkeley-softfloat-3 dtc slirp
 eof
 
-FROM --platform=$BUILDPLATFORM alpine:${ALPINE_VERSION} AS base
+FROM --platform=$BUILDPLATFORM ghcr.io/loong64/alpine:${ALPINE_VERSION} AS base
 RUN apk add --no-cache git clang lld python3 llvm make ninja pkgconfig glib-dev gcc musl-dev perl bash
 COPY --from=xx / /
 ENV PATH=/qemu/install-scripts:$PATH
@@ -89,7 +89,7 @@ RUN --mount=target=.,from=src,src=/src/qemu,rw --mount=target=./install-scripts,
 ARG BINARY_PREFIX
 RUN cd /usr/bin; [ -z "$BINARY_PREFIX" ] || for f in $(ls qemu-*); do ln -s $f $BINARY_PREFIX$f; done
 
-FROM --platform=$BUILDPLATFORM golang:${GO_VERSION}-alpine${ALPINE_VERSION} AS binfmt
+FROM --platform=$BUILDPLATFORM ghcr.io/loong64/golang:${GO_VERSION}-alpine${ALPINE_VERSION} AS binfmt
 COPY --from=xx / /
 ENV CGO_ENABLED=0
 ARG TARGETPLATFORM
@@ -118,9 +118,9 @@ COPY --from=build usr/bin/${BINARY_PREFIX}qemu-* /
 FROM scratch AS archive
 COPY --from=build-archive /archive/* /
 
-FROM --platform=$BUILDPLATFORM tonistiigi/bats-assert AS assert
+FROM --platform=$BUILDPLATFORM ghcr.io/loong64/bats-assert AS assert
 
-FROM --platform=$BUILDPLATFORM alpine:${ALPINE_VERSION} AS alpine-crossarch
+FROM --platform=$BUILDPLATFORM ghcr.io/loong64/alpine:${ALPINE_VERSION} AS alpine-crossarch
 
 RUN apk add --no-cache bash
 
@@ -153,7 +153,7 @@ RUN <<eof
 eof
 
 # buildkit-test runs test suite for buildkit embedded QEMU
-FROM golang:${GO_VERSION}-alpine${ALPINE_VERSION} AS buildkit-test
+FROM ghcr.io/loong64/golang:${GO_VERSION}-alpine${ALPINE_VERSION} AS buildkit-test
 RUN apk add --no-cache bash bats
 WORKDIR /work
 COPY --from=assert . .
