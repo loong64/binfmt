@@ -1,5 +1,5 @@
 variable "REPO" {
-  default = "tonistiigi/binfmt"
+  default = "ghcr.io/loong64/binfmt"
 }
 variable "QEMU_REPO" {
   default = "https://github.com/qemu/qemu"
@@ -8,7 +8,7 @@ variable "QEMU_VERSION" {
   default = "v9.2.2"
 }
 variable "QEMU_PATCHES" {
-  default = "cpu-max-arm"
+  default = "cpu-max-arm,clang"
 }
 
 // Special target: https://github.com/docker/metadata-action#bake-definition
@@ -36,6 +36,7 @@ target "all-arch" {
     "linux/s390x",
     "linux/riscv64",
     "linux/386",
+    "linux/loong64",
   ]
 }
 

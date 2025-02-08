@@ -12,21 +12,35 @@ on:
       qemu_version:
         description: 'QEMU version (e.g. v5.2.0)'
         required: true
+        default: 'v9.2.2'
       target:
+        type: choice
         description: 'Bake target'
         required: true
         default: 'mainline'
+        options:
+        - mainline
+        - buildkit
+        - desktop
       latest:
+        type: choice
         description: 'Create latest tag'
         required: true
         default: 'false'
+        options:
+        - true
+        - false
       dry-run:
+        type: choice
         description: 'Dry run'
         required: false
-        default: 'true'
+        default: 'false'
+        options:
+        - true
+        - false
 
 env:
-  REPO_SLUG: tonistiigi/binfmt
+  REPO_SLUG: ghcr.io/loong64/binfmt
   CACHE_GHA_SCOPE_CROSS: binfmt-cross
 
 jobs:
@@ -55,10 +69,10 @@ jobs:
             TAG_PREFIX=${{ github.event.inputs.target }}-
             GIT_TAG=${{ github.event.inputs.target }}/${{ github.event.inputs.qemu_version }}-${{ github.run_number }}
           fi
-          echo ::set-output name=repo::${REPO}
-          echo ::set-output name=ref::${REF}
-          echo ::set-output name=tag_prefix::${TAG_PREFIX}
-          echo ::set-output name=git_tag::${GIT_TAG}
+          echo "repo=${REPO}" >> $GITHUB_OUTPUT
+          echo "ref=${REF}" >> $GITHUB_OUTPUT
+          echo "tag_prefix=${TAG_PREFIX}" >> $GITHUB_OUTPUT
+          echo "git_tag=${GIT_TAG}" >> $GITHUB_OUTPUT
       -
         name: Docker meta
         id: meta
@@ -87,10 +101,10 @@ jobs:
       -
         name: Login to DockerHub
         uses: docker/login-action@v3
-        if: github.event.inputs.dry-run != 'true'
         with:
-          username: ${{ secrets.DOCKERIO_USERNAME }}
-          password: ${{ secrets.DOCKERIO_PASSWORD }}
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
       -
         name: Build image
         uses: docker/bake-action@v5
