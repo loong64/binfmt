@@ -3,7 +3,7 @@
 ARG GO_VERSION=1.25
 ARG ALPINE_VERSION=3.23
 
-FROM golang:${GO_VERSION}-alpine${ALPINE_VERSION} AS base
+FROM ghcr.io/loong64/golang:${GO_VERSION}-alpine${ALPINE_VERSION} AS base
 RUN apk add --no-cache git rsync
 WORKDIR /src
 

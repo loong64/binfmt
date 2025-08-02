@@ -52,6 +52,9 @@ if [ -z "$QEMU_TARGETS" ]; then
   esac
 fi
 
+QEMU_EXTRA_LDFLAGS="-latomic"
+[ "$arch" = "loong64" ] && QEMU_EXTRA_LDFLAGS=""
+
 set -x
 ./configure \
   --prefix=/usr \
@@ -85,5 +88,5 @@ set -x
   --cross-prefix=$(xx-info)- \
   --host-cc=$(TARGETPLATFORM= TARGETPAIR= xx-clang --print-target-triple)-clang \
   --cc=$(xx-clang --print-target-triple)-clang \
-  --extra-ldflags=-latomic \
+  --extra-ldflags="$QEMU_EXTRA_LDFLAGS" \
   --target-list="$QEMU_TARGETS"

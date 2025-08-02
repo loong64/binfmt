@@ -8,9 +8,9 @@ ARG QEMU_VERSION=HEAD
 ARG QEMU_REPO=https://github.com/qemu/qemu
 
 # xx is a helper for cross-compilation
-FROM --platform=$BUILDPLATFORM tonistiigi/xx:${XX_VERSION} AS xx
+FROM --platform=$BUILDPLATFORM ghcr.io/loong64/tonistiigi/xx:${XX_VERSION} AS xx
 
-FROM --platform=$BUILDPLATFORM alpine:${ALPINE_VERSION} AS src
+FROM --platform=$BUILDPLATFORM ghcr.io/loong64/alpine:${ALPINE_VERSION} AS src
 RUN apk add --no-cache git patch meson
 
 WORKDIR /src
@@ -62,7 +62,7 @@ RUN <<eof
 eof
 
 FROM --platform=$BUILDPLATFORM alpine:${ALPINE_VERSION} AS base
-RUN apk add --no-cache git clang lld python3 llvm make ninja pkgconfig glib-dev gcc musl-dev pcre2-dev perl bash
+RUN apk add --no-cache git clang lld python3 llvm make ninja pkgconfig glib-dev gcc musl-dev pcre2-dev perl bash libatomic
 COPY --from=xx / /
 ENV PATH=/qemu/install-scripts:$PATH
 WORKDIR /qemu
@@ -96,7 +96,7 @@ RUN cd /usr/bin && mkdir -p /archive && \
 FROM scratch AS build-archive
 COPY --from=build-archive-run /archive/* /
 
-FROM --platform=$BUILDPLATFORM golang:${GO_VERSION}-alpine${ALPINE_VERSION} AS binfmt
+FROM --platform=$BUILDPLATFORM ghcr.io/loong64/golang:${GO_VERSION}-alpine${ALPINE_VERSION} AS binfmt
 COPY --from=xx / /
 ENV CGO_ENABLED=0
 ARG TARGETPLATFORM
@@ -128,9 +128,9 @@ FROM scratch AS archive
 COPY --from=build-archive / /
 COPY --from=binfmt-archive / /
 
-FROM --platform=$BUILDPLATFORM tonistiigi/bats-assert AS assert
+FROM --platform=$BUILDPLATFORM ghcr.io/loong64/tonistiigi/bats-assert AS assert
 
-FROM --platform=$BUILDPLATFORM alpine:${ALPINE_VERSION} AS alpine-crossarch
+FROM --platform=$BUILDPLATFORM ghcr.io/loong64/alpine:${ALPINE_VERSION} AS alpine-crossarch
 
 RUN apk add --no-cache bash
 
@@ -158,7 +158,7 @@ RUN <<eof
 eof
 
 # buildkit-test runs test suite for buildkit embedded QEMU
-FROM golang:${GO_VERSION}-alpine${ALPINE_VERSION} AS buildkit-test
+FROM ghcr.io/loong64/golang:${GO_VERSION}-alpine${ALPINE_VERSION} AS buildkit-test
 RUN apk add --no-cache bash bats
 WORKDIR /work
 COPY --from=assert . .

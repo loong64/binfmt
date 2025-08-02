@@ -30,7 +30,7 @@ on:
         default: true
 
 env:
-  REPO_SLUG: tonistiigi/binfmt
+  REPO_SLUG: ghcr.io/loong64/tonistiigi/binfmt
 
 jobs:
   prepare-build:
@@ -108,8 +108,9 @@ jobs:
     needs:
       - prepare-build
     permissions:
-      contents: read # same as global permission
+      contents: write # same as global permission
       id-token: write # for signing attestation(s) with GitHub OIDC Token
+      packages: write
     with:
       distribute: ${{ github.event_name == 'pull_request' }}
       setup-qemu: true
@@ -139,10 +140,10 @@ jobs:
       meta-bake-target: meta-helper
     secrets:
       registry-auths: |
-        - registry: docker.io
-          username: ${{ secrets.DOCKERIO_USERNAME }}
-          password: ${{ secrets.DOCKERIO_PASSWORD }}
-          scope: ${{ needs.prepare-build.outputs.image_name }}@push
+        - registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+          # scope: ${{ needs.prepare-build.outputs.image_name }}@push
 
   qemu-archive:
     uses: docker/github-builder/.github/workflows/bake.yml@v1
