@@ -8,8 +8,8 @@ permissions:
   contents: read
 
 on:
-  schedule:
-    - cron: '0 8 */6 * *' # every 6 days
+  # schedule:
+    # - cron: '0 8 */6 * *' # every 6 days
   workflow_dispatch:
   push:
     branches:
@@ -17,7 +17,7 @@ on:
   pull_request:
 
 env:
-  REPO_SLUG: tonistiigi/binfmt
+  REPO_SLUG: ghcr.io/loong64/tonistiigi/binfmt
   CACHE_GHA_SCOPE: binfmt
 
 jobs:
@@ -139,13 +139,13 @@ jobs:
           load: true
           set: |
             *.cache-from=type=gha,scope=${{ env.CACHE_GHA_SCOPE }}-${{ matrix.target }}
-            mainline.tags=tonistiigi/binfmt:test
+            mainline.tags=${{ env.REPO_SLUG }}:test
       -
         name: Test mainline
         if: matrix.target == 'mainline'
         run: |
-          docker run --rm --privileged tonistiigi/binfmt:test --uninstall qemu-*
-          docker run --rm --privileged tonistiigi/binfmt:test --install all
+          docker run --rm --privileged ${{ env.REPO_SLUG }}:test --uninstall qemu-*
+          docker run --rm --privileged ${{ env.REPO_SLUG }}:test --install all
           docker run --rm --platform linux/arm64 alpine uname -a
           docker run --rm --platform linux/arm/v7 alpine uname -a
           docker run --rm --platform linux/ppc64le alpine uname -a
@@ -209,12 +209,12 @@ jobs:
           load: true
           set: |
             *.cache-from=type=gha,scope=${{ env.CACHE_GHA_SCOPE }}-${{ matrix.target }}
-            *.tags=tonistiigi/binfmt:test
+            *.tags=${{ env.REPO_SLUG }}:test
       -
         name: Set up QEMU
         run: |
-          docker run --privileged --rm tonistiigi/binfmt --uninstall qemu-*
-          docker run --rm --privileged tonistiigi/binfmt:test --install all
+          docker run --privileged --rm ${{ env.REPO_SLUG }} --uninstall qemu-*
+          docker run --rm --privileged ${{ env.REPO_SLUG }}:test --install all
       -
         name: Set up Docker Buildx
         uses: docker/setup-buildx-action@bb05f3f5519dd87d3ba754cc423b652a5edd6d2c # v4.2.0
@@ -249,6 +249,7 @@ jobs:
     permissions:
       contents: read # same as global permission
       id-token: write # to create OIDC token for signing
+      packages: write
     needs:
       - validate
       - install-and-test

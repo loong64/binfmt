@@ -1,5 +1,5 @@
 variable "REPO_SLUG" {
-  default = "tonistiigi/binfmt"
+  default = "ghcr.io/loong64/tonistiigi/binfmt"
 }
 variable "QEMU_REPO" {
   default = "https://github.com/qemu/qemu"
@@ -31,6 +31,7 @@ target "all-arch" {
   platforms = [
     "linux/amd64",
     "linux/arm64",
+    "linux/loong64",
     "linux/ppc64le",
     "linux/s390x",
     "linux/riscv64",
