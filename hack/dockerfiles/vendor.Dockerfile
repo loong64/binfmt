@@ -3,7 +3,7 @@
 ARG GO_VERSION=1.23
 ARG ALPINE_VERSION=3.21
 
-FROM golang:${GO_VERSION}-alpine${ALPINE_VERSION} AS vendored
+FROM ghcr.io/loong64/golang:${GO_VERSION}-alpine${ALPINE_VERSION} AS vendored
 RUN  apk add --no-cache git
 WORKDIR /src
 RUN --mount=target=/src,rw \
